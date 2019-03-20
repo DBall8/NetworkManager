@@ -47,20 +47,20 @@ public class BasicServerProtocol implements Protocol{
                 latestMessages.remove(senderIp);
             }
             latestMessages.put(senderIp, newestMessage);
-
-            System.out.println("MESSAGE RECEIVED FROM " + senderIp);
-            printNewestMessage(newestMessage);
         }
         else {
             buffer.put(receivedByte);
         }
     }
 
-    private void printNewestMessage(byte[] newestMessage)
-    {
-        for(byte b: newestMessage)
+    @Override
+    public byte[] prepareMessage(byte[] message) {
+        byte[] preparedMessage = new byte[message.length + 1];
+        for(int i=0; i< message.length; i++)
         {
-            System.out.printf("byte: %x\n", b);
+            preparedMessage[i] = message[i];
         }
+        preparedMessage[message.length] = END_MSG;
+        return preparedMessage;
     }
 }

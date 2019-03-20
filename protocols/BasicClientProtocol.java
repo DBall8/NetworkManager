@@ -18,14 +18,6 @@ public class BasicClientProtocol implements Protocol{
         this.buffer = new Buffer(maxMessageLength);
     }
 
-    private void printNewestMessage()
-    {
-        for(byte b: newestMessage)
-        {
-            System.out.printf("byte: %x\n", b);
-        }
-    }
-
     @Override
     public synchronized void handleByteReceived(String senderIp, byte receivedByte)
     {
@@ -38,11 +30,20 @@ public class BasicClientProtocol implements Protocol{
                 newestMessage[i] = buffer.get(i);
             }
             buffer.reset();
-            System.out.println("MESSAGE RECEIVED:");
-            printNewestMessage();
         }
         else {
             buffer.put(receivedByte);
         }
+    }
+
+    @Override
+    public byte[] prepareMessage(byte[] message) {
+        byte[] preparedMessage = new byte[message.length + 1];
+        for(int i=0; i< message.length; i++)
+        {
+            preparedMessage[i] = message[i];
+        }
+        preparedMessage[message.length] = END_MSG;
+        return preparedMessage;
     }
 }

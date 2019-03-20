@@ -106,7 +106,7 @@ public class Connection {
         if(output != null)
         {
             try {
-                output.write(message);
+                output.write(protocol.prepareMessage(message));
             } catch (IOException e) {
                 System.err.println("Could not send byte:");
                 e.printStackTrace();
