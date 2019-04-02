@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 
 public class Connection {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     private String ip;
     private int port;

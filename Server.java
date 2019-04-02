@@ -9,7 +9,7 @@ import java.net.Socket;
 
 public class Server {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private ServerSocket serverSocket;
     private Thread connectionListener;
