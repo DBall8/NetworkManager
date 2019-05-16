@@ -1,13 +1,13 @@
 package networkManager;
 
+import networkManager.callback.ByteReceivedCallback;
 import networkManager.callback.Callback;
-import networkManager.protocols.Protocol;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Server {
+public class Server implements NetworkConnection{
 
     private static final boolean DEBUG = false;
 
@@ -17,12 +17,11 @@ public class Server {
     private Connection connections[];
     private int maxConnections;
 
-    private Protocol protocol;
+    private ByteReceivedCallback byteReceivedCallback;
     private Callback<Connection> newConnectionCallback = null;
 
-    public Server(int port, int maxConnections, Protocol protocol)
+    public Server(int port, int maxConnections)
     {
-        this.protocol = protocol;
         try {
             serverSocket = new ServerSocket(port);
             connections = new Connection[maxConnections];
@@ -43,7 +42,7 @@ public class Server {
                 {
                     try {
                         Socket socket = serverSocket.accept();
-                        Connection newConnection = new Connection(socket, protocol);
+                        Connection newConnection = new Connection(socket);
                         addConnection(newConnection);
                         if(newConnectionCallback != null) newConnectionCallback.run(newConnection);
                     } catch (IOException e) {
@@ -66,7 +65,7 @@ public class Server {
         this.newConnectionCallback = connectionCallback;
     }
 
-    public void broadcast(byte[] message)
+    public void sendMessage(byte[] message)
     {
         for(int i=0; i<maxConnections; i++)
         {
@@ -80,6 +79,7 @@ public class Server {
 
     private void addConnection(Connection newConnection)
     {
+        newConnection.setOnByteReceivedCallback(byteReceivedCallback);
         for(int i=0; i<maxConnections; i++)
         {
             Connection connection = connections[i];
@@ -114,5 +114,14 @@ public class Server {
         }
 
         if(DEBUG) System.out.println("CONNECTION CLOSED");
+    }
+
+    public void setOnByteReceivedCallback(ByteReceivedCallback callback)
+    {
+        byteReceivedCallback = callback;
+        for(Connection c: connections)
+        {
+            if (c != null) c.setOnByteReceivedCallback(callback);
+        }
     }
 }

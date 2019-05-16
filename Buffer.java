@@ -28,7 +28,7 @@ public class Buffer {
 
     public byte get(int index)
     {
-        if(index >= size) return 0;
+        if(index >= size)return 0;
         return buffer[index];
     }
 

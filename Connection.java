@@ -1,12 +1,12 @@
 package networkManager;
 
-import networkManager.protocols.Protocol;
+import networkManager.callback.ByteReceivedCallback;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Connection {
+public class Connection implements NetworkConnection{
 
     static final boolean DEBUG = false;
 
@@ -18,22 +18,20 @@ public class Connection {
     private OutputStream output; // for writing
     private InputStream input; // for reading
 
-    private Protocol protocol;
+    private ByteReceivedCallback byteReceivedCallback;
 
     boolean closed = false;
 
-    public Connection(String ip, int port, Protocol protocol)
+    public Connection(String ip, int port)
     {
-        this.protocol = protocol;
         this.ip = ip;
         this.port = port;
     }
 
-    Connection(Socket socket, Protocol protocol)
+    Connection(Socket socket)
     {
         this.socket = socket;
         this.ip = socket.getInetAddress().getHostAddress();
-        this.protocol = protocol;
 
         try {
             output = socket.getOutputStream();
@@ -74,11 +72,14 @@ public class Connection {
         listener = new Thread(new Runnable() {
             @Override
             public void run() {
-                int receievedByte;
+                int receivedByte;
                 try {
-                    while ((receievedByte = input.read()) != -1) {
-                        protocol.handleByteReceived(ip, (byte)receievedByte);
-                        if(DEBUG) System.out.println(receievedByte);
+                    while ((receivedByte = input.read()) != -1) {
+                        if (byteReceivedCallback != null)
+                        {
+                            byteReceivedCallback.handleByteReceived(ip, (byte)receivedByte);
+                        }
+                        if(DEBUG) System.out.println(receivedByte);
                     }
 
                     // End of stream received, connection closing
@@ -106,7 +107,12 @@ public class Connection {
         if(output != null)
         {
             try {
-                output.write(protocol.prepareMessage(message));
+                output.write(message);
+
+                if(DEBUG)
+                {
+                    System.out.println("SENDING");
+                }
             } catch (IOException e) {
                 System.err.println("Could not send byte:");
                 e.printStackTrace();
@@ -130,4 +136,10 @@ public class Connection {
         }
         if(DEBUG) System.out.println("CONNECTION CLOSED");
     }
+
+    public void setOnByteReceivedCallback(ByteReceivedCallback byteReceivedCallback) {
+        this.byteReceivedCallback = byteReceivedCallback;
+    }
+
+    public String getIp(){ return ip; }
 }
